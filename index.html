@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Bastidores · ANHDND</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f5f5f3;color:#1a1a1a;padding-bottom:80px}
+/* NAV */
+.daynav{position:sticky;top:0;z-index:100;background:#fff;border-bottom:1px solid #ebebeb;display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.daynav::-webkit-scrollbar{display:none}
+.daybtn{flex-shrink:0;padding:14px 16px 12px;font-size:12px;font-weight:600;color:#aaa;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;line-height:1.3;text-align:center}
+.daybtn .dn{font-size:10px;color:#ccc;display:block;margin-bottom:1px}
+.daybtn.active{color:#1a1a1a;border-bottom-color:#1a1a1a}
+.daybtn.active .dn{color:#888}
+/* HEADER */
+.dayhead{padding:18px 16px 4px}
+.dayhead h1{font-size:17px;font-weight:600}
+.dayhead .sub{font-size:12px;color:#888;margin-top:2px}
+.prog-bar{height:4px;background:#e0e0de;border-radius:3px;margin:12px 16px 6px}
+.prog-fill{height:4px;background:#1a1a1a;border-radius:3px;width:0%;transition:width .3s}
+.stats{font-size:12px;color:#888;text-align:center;padding:4px 0 12px}
+.stats b{color:#1a1a1a}
+/* DAY PANELS */
+.day-panel{display:none;padding:0 16px}
+.day-panel.active{display:block}
+/* ITEMS (reuse from individual files) */
+.sec{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#aaa;margin:20px 0 8px 2px}
+label.item{display:flex;align-items:flex-start;gap:12px;background:#fff;border:1px solid #ebebeb;border-radius:10px;padding:12px 14px;margin-bottom:6px;cursor:pointer}
+label.item:hover{background:#fafafa}
+label.item:has(input:checked){opacity:.45}
+label.item:has(input:checked) .t{text-decoration:line-through}
+input[type="checkbox"]{width:20px;height:20px;accent-color:#1a1a1a;flex-shrink:0;margin-top:1px;cursor:pointer}
+.t{font-size:14px;font-weight:500;line-height:1.4}
+.h{font-size:12px;color:#888;margin-top:3px;line-height:1.4;font-weight:400}
+details{background:#fff;border:1px solid #ebebeb;border-radius:10px;margin-bottom:6px;overflow:hidden}
+details[open]{border-color:#ccc}
+summary{list-style:none;display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;user-select:none}
+summary::-webkit-details-marker{display:none}
+summary:hover{background:#fafafa}
+.arr{font-size:10px;color:#bbb;flex-shrink:0;display:inline-block;transition:transform .15s}
+details[open] .arr{transform:rotate(90deg)}
+.sb{flex:1}
+.badge{font-size:11px;color:#999;background:#f0f0ee;border-radius:20px;padding:2px 9px;flex-shrink:0;white-space:nowrap}
+details.ok>summary{opacity:.45}
+details.ok>summary .t{text-decoration:line-through}
+.sub-list{padding:2px 14px 10px 44px;border-top:1px solid #f0f0f0}
+.sub-note{font-size:11px;color:#bbb;padding:7px 0 3px;font-style:italic}
+label.si{display:flex;align-items:center;gap:10px;padding:6px 4px;cursor:pointer;border-radius:6px}
+label.si:hover{background:#f8f8f6}
+label.si:has(input:checked){opacity:.4}
+label.si:has(input:checked) .sn{text-decoration:line-through}
+label.si input{width:16px;height:16px;accent-color:#1a1a1a;flex-shrink:0;cursor:pointer}
+.sn{font-size:13px}
+.sh{font-size:11px;color:#aaa;margin-left:2px}
+</style>
+</head>
+<body>
+
+<nav class="daynav">
+<button class="daybtn active" onclick="showDay(11)" id="btn11"><span class="dn">Qui 11/06</span>Dia 11</button>
+<button class="daybtn" onclick="showDay(12)" id="btn12"><span class="dn">Sex 12/06</span>Dia 12</button>
+<button class="daybtn" onclick="showDay(13)" id="btn13"><span class="dn">Sáb 13/06</span>Dia 13</button>
+<button class="daybtn" onclick="showDay(14)" id="btn14"><span class="dn">Dom 14/06</span>Dia 14</button>
+</nav>
+<div class="day-panel active" id="day11">
+<div class="dayhead"><h1>Dia 11 &middot; 11/06</h1><div class="sub">Aproximação e texturas</div></div>
+<div class="prog-bar"><div class="prog-fill" id="bar11"></div></div>
+<div class="stats" id="stats11"></div>
+</div>
+
+<!-- ── AO LONGO DO DIA ── -->
+<div class="sec">Ao longo do dia</div>
+
+<details id="chegada">
+  <summary>
+    <span class="arr">&#9658;</span>
+    <div class="sb"><div class="t">Chegada da equipe</div><div class="h">Perguntas r&aacute;pidas: expectativa do dia, maior desafio, em uma palavra</div></div>
+    <span class="badge" id="b-chegada">0/21</span>
+  </summary>
+  <div class="sub-list">
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Jo&atilde;o <span class="sh">(Tom)</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Pedro <span class="sh">(Rubens)</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Juliana Sp&iacute;nola <span class="sh">dire&ccedil;&atilde;o</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Nat&aacute;lia Braga <span class="sh">produ&ccedil;&atilde;o executiva</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Nick Maia <span class="sh">1&ordm; AD</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Igor Gama <span class="sh">fotografia</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Giu Pera <span class="sh">c&acirc;mera vertical</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Victoria Pieri <span class="sh">som (sai 17h)</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Luly de Paula <span class="sh">som</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Hebertt Emanoel <span class="sh">arte/figurino (sai 17h)</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Enderson Ferreira <span class="sh">maquiagem/marketing</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camily Viana <span class="sh">maquiagem</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Nairane Gurgel <span class="sh">continuidade</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Nat&atilde; Brolim <span class="sh">making of</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Gabriel Correia <span class="sh">bastidores</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Rayssa Silva <span class="sh">bastidores</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Vit&oacute;ria Beatriz <span class="sh">conte&uacute;do</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Maria Mello <span class="sh">AP geral</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Allan Spada <span class="sh">AP geral</span></span></label>
+    <div class="sub-note">Chegam depois</div>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Luan Oliveira <span class="sh">produ&ccedil;&atilde;o de set (entra 16h30)</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Bruno Junqueira <span class="sh">c&acirc;mera (entra 17h)</span></span></label>
+  </div>
+</details>
+
+<label class="item">
+  <input type="checkbox" onchange="upd()">
+  <div><div class="t">Planos da loca&ccedil;&atilde;o antes de come&ccedil;ar</div>
+  <div class="h">Equipe se organizando, arte montando, c&acirc;mera sendo preparada</div></div>
+</label>
+
+<label class="item">
+  <input type="checkbox" onchange="upd()">
+  <div><div class="t">Foto oficial do dia</div>
+  <div class="h">Geral + espont&acirc;nea + vertical (redes) + horizontal (arquivo)</div></div>
+</label>
+
+<details id="final">
+  <summary>
+    <span class="arr">&#9658;</span>
+    <div class="sb"><div class="t">Final da di&aacute;ria</div><div class="h">Como voc&ecirc; sai desse dia? / Momento mais marcante / Em uma palavra</div></div>
+    <span class="badge" id="b-final">0/9</span>
+  </summary>
+  <div class="sub-list">
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Jo&atilde;o <span class="sh">(Tom)</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Pedro <span class="sh">(Rubens)</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Juliana Sp&iacute;nola</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Nat&aacute;lia Braga</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Nick Maia</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Igor Gama</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Giu Pera</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Enderson Ferreira</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Nat&atilde; Brolim</span></label>
+  </div>
+</details>
+
+<!-- ── PILULA ── -->
+<div class="sec">P&iacute;lula</div>
+
+<label class="item">
+  <input type="checkbox" onchange="upd()">
+  <div><div class="t">P&iacute;lula Day 1 (15s)</div>
+  <div class="h">Cortes r&aacute;pidos: claquete, c&acirc;mera montando, equipe se posicionando</div></div>
+</label>
+
+<!-- ── BLOCO 0 ── -->
+<div class="sec">Bloco 0</div>
+
+<details id="guardanapo">
+  <summary>
+    <span class="arr">&#9658;</span>
+    <div class="sb"><div class="t">Uma frase no guardanapo</div><div class="h">Falar a frase + escrever de verdade &middot; Captar: m&atilde;o escrevendo, close da frase, pessoa dobrando</div></div>
+    <span class="badge" id="b-guardanapo">0/21</span>
+  </summary>
+  <div class="sub-list">
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Jo&atilde;o <span class="sh">(Tom)</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Pedro <span class="sh">(Rubens)</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Juliana Sp&iacute;nola</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Nat&aacute;lia Braga</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Nick Maia</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Igor Gama</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Giu Pera</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Victoria Pieri</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Luly de Paula</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Hebertt Emanoel</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Enderson Ferreira</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camily Viana</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Nairane Gurgel</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Nat&atilde; Brolim</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Gabriel Correia</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Rayssa Silva</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Vit&oacute;ria Beatriz</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Maria Mello</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Allan Spada</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Luan Oliveira</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Bruno Junqueira</span></label>
+  </div>
+</details>
+
+<!-- ── Q01 ── -->
+<div class="sec">Q01 &middot; Fora de Contexto &middot; Elenco e Dire&ccedil;&atilde;o</div>
+
+<details id="q01-joao">
+  <summary>
+    <span class="arr">&#9658;</span>
+    <div class="sb"><div class="t">Jo&atilde;o <span class="sh">(Tom)</span></div></div>
+    <span class="badge" id="b-q01-joao">0/2</span>
+  </summary>
+  <div class="sub-list">
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 1 <span class="sh">fala o mantra: "S&oacute; viva quantas vezes forem necess&aacute;rias."</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 2 <span class="sh">sorteia uma frase e responde fora de contexto</span></span></label>
+  </div>
+</details>
+
+<details id="q01-pedro">
+  <summary>
+    <span class="arr">&#9658;</span>
+    <div class="sb"><div class="t">Pedro <span class="sh">(Rubens)</span></div></div>
+    <span class="badge" id="b-q01-pedro">0/2</span>
+  </summary>
+  <div class="sub-list">
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 1 <span class="sh">fala o mantra: "S&oacute; viva quantas vezes forem necess&aacute;rias."</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 2 <span class="sh">sorteia uma frase e responde fora de contexto</span></span></label>
+  </div>
+</details>
+
+<details id="q01-juliana">
+  <summary>
+    <span class="arr">&#9658;</span>
+    <div class="sb"><div class="t">Juliana Sp&iacute;nola</div></div>
+    <span class="badge" id="b-q01-juliana">0/2</span>
+  </summary>
+  <div class="sub-list">
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 1 <span class="sh">fala o mantra: "S&oacute; viva quantas vezes forem necess&aacute;rias."</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 2 <span class="sh">sorteia uma frase e responde fora de contexto</span></span></label>
+  </div>
+</details>
+
+<details id="q01-natalia">
+  <summary>
+    <span class="arr">&#9658;</span>
+    <div class="sb"><div class="t">Nat&aacute;lia Braga</div></div>
+    <span class="badge" id="b-q01-natalia">0/2</span>
+  </summary>
+  <div class="sub-list">
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 1 <span class="sh">fala o mantra: "S&oacute; viva quantas vezes forem necess&aacute;rias."</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 2 <span class="sh">sorteia uma frase e responde fora de contexto</span></span></label>
+  </div>
+</details>
+
+<!-- ── Q04 ── -->
+<div class="sec">Q04 &middot; Como Essa Hist&oacute;ria Foi Constru&iacute;da</div>
+
+<label class="item">
+  <input type="checkbox" onchange="upd()">
+  <div><div class="t">Bloco A &middot; Juliana + Nat&aacute;lia juntas</div>
+  <div class="h">Ap&oacute;s 1&ordm; bloco ou no intervalo &middot; Parceria, processo, o que mudou de DQP para ANHDND</div></div>
+</label>
+
+<!-- ── STILL ── -->
+<div class="sec">Still</div>
+
+<label class="item">
+  <input type="checkbox" onchange="upd()">
+  <div><div class="t">Texturas do set</div>
+  <div class="h">Corredores, pontos de luz isolados, chegada do elenco ao camarim</div></div>
+</label>
+
+<!-- ── Q06 ── -->
+<div class="sec">Q06 &middot; Bate-Volta &middot; Elenco e Dire&ccedil;&atilde;o</div>
+
+<label class="item">
+  <input type="checkbox" onchange="upd()">
+  <div><div class="t">Jo&atilde;o <span class="sh" style="font-size:13px">(Tom)</span></div>
+  <div class="h">Uma palavra, uma escolha, uma frase curta &middot; Sem explicar a hist&oacute;ria</div></div>
+</label>
+
+<label class="item">
+  <input type="checkbox" onchange="upd()">
+  <div><div class="t">Pedro <span class="sh" style="font-size:13px">(Rubens)</span></div>
+  <div class="h">Uma palavra, uma escolha, uma frase curta &middot; Sem explicar a hist&oacute;ria</div></div>
+</label>
+
+<label class="item">
+  <input type="checkbox" onchange="upd()">
+  <div><div class="t">Juliana Sp&iacute;nola</div>
+  <div class="h">Uma palavra, uma escolha, uma frase curta &middot; Sem explicar a hist&oacute;ria</div></div>
+</label>
+
+<!-- ── Q08 ── -->
+<div class="sec">Q08 &middot; Repert&oacute;rio de Cinema &middot; Elenco e Dire&ccedil;&atilde;o</div>
+
+<label class="item">
+  <input type="checkbox" onchange="upd()">
+  <div><div class="t">Jo&atilde;o <span class="sh" style="font-size:13px">(Tom)</span></div>
+  <div class="h">Filme nacional, filme internacional, Top 4, um filme que te formou</div></div>
+</label>
+
+<label class="item">
+  <input type="checkbox" onchange="upd()">
+  <div><div class="t">Pedro <span class="sh" style="font-size:13px">(Rubens)</span></div>
+  <div class="h">Filme nacional, filme internacional, Top 4, um filme que te formou</div></div>
+</label>
+
+<label class="item">
+  <input type="checkbox" onchange="upd()">
+  <div><div class="t">Juliana Sp&iacute;nola</div>
+  <div class="h">Filme nacional, filme internacional, Top 4, um filme que te formou</div></div>
+</label>
+
+<label class="item">
+  <input type="checkbox" onchange="upd()">
+  <div><div class="t">Nat&aacute;lia Braga</div>
+  <div class="h">Filme nacional, filme internacional, Top 4, um filme que te formou</div></div>
+</label>
+</div>
+<div class="day-panel" id="day12">
+<div class="dayhead"><h1>Dia 12 &middot; 12/06</h1><div class="sub">Presença e materialidade</div></div>
+<div class="prog-bar"><div class="prog-fill" id="bar12"></div></div>
+<div class="stats" id="stats12"></div>
+</div>
+
+<!-- ── AO LONGO DO DIA ── -->
+<div class="sec">Ao longo do dia</div>
+
+<details id="chegada">
+  <summary>
+    <span class="arr">&#9658;</span>
+    <div class="sb"><div class="t">Chegada da equipe</div><div class="h">Perguntas r&aacute;pidas: expectativa do dia, maior desafio, em uma palavra</div></div>
+    <span class="badge" id="b-chegada">0/21</span>
+  </summary>
+  <div class="sub-list">
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Jo&atilde;o <span class="sh">(Tom)</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Pedro <span class="sh">(Rubens)</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Juliana Sp&iacute;nola <span class="sh">dire&ccedil;&atilde;o</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Nat&aacute;lia Braga <span class="sh">produ&ccedil;&atilde;o executiva</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Nick Maia <span class="sh">1&ordm; AD</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Igor Gama <span class="sh">fotografia</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Giu Pera <span class="sh">c&acirc;mera vertical</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Victoria Pieri <span class="sh">som (sai 17h)</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Luly de Paula <span class="sh">som</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Hebertt Emanoel <span class="sh">arte/figurino</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Enderson Ferreira <span class="sh">maquiagem/marketing</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camily Viana <span class="sh">maquiagem</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Nairane Gurgel <span class="sh">continuidade</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Nat&atilde; Brolim <span class="sh">making of</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Gabriel Correia <span class="sh">bastidores</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Rayssa Silva <span class="sh">bastidores</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Vit&oacute;ria Beatriz <span class="sh">conte&uacute;do</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Maria Mello <span class="sh">AP geral</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Allan Spada <span class="sh">AP geral</span></span></label>
+    <div class="sub-note">Chegam depois</div>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Luan Oliveira <span class="sh">produ&ccedil;&atilde;o de set (entra 16h30)</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Bruno Junqueira <span class="sh">c&acirc;mera (entra 17h)</span></span></label>
+  </div>
+</details>
+
+<label class="item">
+  <input type="checkbox" onchange="upd()">
+  <div><div class="t">Planos da loca&ccedil;&atilde;o antes de come&ccedil;ar</div>
+  <div class="h">Equipe se organizando, arte montando, c&acirc;mera sendo preparada</div></div>
+</label>
+
+<label class="item">
+  <input type="checkbox" onchange="upd()">
+  <div><div class="t">Foto oficial do dia</div>
+  <div class="h">Geral + espont&acirc;nea + vertical (redes) + horizontal (arquivo)</div></div>
+</label>
+
+<details id="final">
+  <summary>
+    <span class="arr">&#9658;</span>
+    <div class="sb"><div class="t">Final da di&aacute;ria</div><div class="h">Como voc&ecirc; sai desse dia? / Momento mais marcante / Em uma palavra</div></div>
+    <span class="badge" id="b-final">0/9</span>
+  </summary>
+  <div class="sub-list">
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Jo&atilde;o <span class="sh">(Tom)</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Pedro <span class="sh">(Rubens)</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Juliana Sp&iacute;nola</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Nat&aacute;lia Braga</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Nick Maia</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Igor Gama</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Giu Pera</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Enderson Ferreira</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Nat&atilde; Brolim</span></label>
+  </div>
+</details>
+
+<!-- ── Q05 BLOCO A ── -->
+<div class="sec">Q05 &middot; Por Dentro da Hist&oacute;ria &middot; Bloco A</div>
+
+<details id="q05-joao">
+  <summary>
+    <span class="arr">&#9658;</span>
+    <div class="sb"><div class="t">Jo&atilde;o <span class="sh">(Tom)</span></div><div class="h">Recebimento da hist&oacute;ria</div></div>
+    <span class="badge" id="b-q05-joao">0/4</span>
+  </summary>
+  <div class="sub-list">
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Como essa hist&oacute;ria chegou em voc&ecirc; pela primeira vez?</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">O que te atravessou primeiro: a rela&ccedil;&atilde;o, a atmosfera ou a dor?</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">O que voc&ecirc; entendeu de imediato, e o que foi entendendo aos poucos?</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">O que faz essa hist&oacute;ria ser mais dif&iacute;cil de interpretar do que parece?</span></label>
+  </div>
+</details>
+
+<details id="q05-pedro">
+  <summary>
+    <span class="arr">&#9658;</span>
+    <div class="sb"><div class="t">Pedro <span class="sh">(Rubens)</span></div><div class="h">Recebimento da hist&oacute;ria</div></div>
+    <span class="badge" id="b-q05-pedro">0/4</span>
+  </summary>
+  <div class="sub-list">
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Como essa hist&oacute;ria chegou em voc&ecirc; pela primeira vez?</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">O que te atravessou primeiro: a rela&ccedil;&atilde;o, a atmosfera ou a dor?</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">O que voc&ecirc; entendeu de imediato, e o que foi entendendo aos poucos?</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">O que faz essa hist&oacute;ria ser mais dif&iacute;cil de interpretar do que parece?</span></label>
+  </div>
+</details>
+
+<!-- ── Q03 ── -->
+<div class="sec">Q03 &middot; O Que Fica em Cena</div>
+
+<label class="item">
+  <input type="checkbox" onchange="upd()">
+  <div><div class="t">Luan Oliveira</div>
+  <div class="h">O que os ativos de cena fazem esse encontro parecer real, e n&atilde;o s&oacute; imaginado?</div></div>
+</label>
+
+<label class="item">
+  <input type="checkbox" onchange="upd()">
+  <div><div class="t">Hebertt Emanoel</div>
+  <div class="h">Na arte e no figurino, qual ativo de cena melhor conta quem s&atilde;o os personagens sem precisar explicar?</div></div>
+</label>
+
+<!-- ── Q01 ARTE/FIGURINO/MAQUIAGEM ── -->
+<div class="sec">Q01 &middot; Fora de Contexto &middot; Arte / Figurino / Maquiagem</div>
+
+<details id="q01-enderson">
+  <summary>
+    <span class="arr">&#9658;</span>
+    <div class="sb"><div class="t">Enderson Ferreira</div></div>
+    <span class="badge" id="b-q01-enderson">0/2</span>
+  </summary>
+  <div class="sub-list">
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 1 <span class="sh">fala o mantra: "S&oacute; viva quantas vezes forem necess&aacute;rias."</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 2 <span class="sh">sorteia uma frase e responde fora de contexto</span></span></label>
+  </div>
+</details>
+
+<details id="q01-camily">
+  <summary>
+    <span class="arr">&#9658;</span>
+    <div class="sb"><div class="t">Camily Viana</div></div>
+    <span class="badge" id="b-q01-camily">0/2</span>
+  </summary>
+  <div class="sub-list">
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 1 <span class="sh">fala o mantra: "S&oacute; viva quantas vezes forem necess&aacute;rias."</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 2 <span class="sh">sorteia uma frase e responde fora de contexto</span></span></label>
+  </div>
+</details>
+
+<details id="q01-hebertt">
+  <summary>
+    <span class="arr">&#9658;</span>
+    <div class="sb"><div class="t">Hebertt Emanoel</div></div>
+    <span class="badge" id="b-q01-hebertt">0/2</span>
+  </summary>
+  <div class="sub-list">
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 1 <span class="sh">fala o mantra: "S&oacute; viva quantas vezes forem necess&aacute;rias."</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 2 <span class="sh">sorteia uma frase e responde fora de contexto</span></span></label>
+  </div>
+</details>
+
+<!-- ── Q06 ── -->
+<div class="sec">Q06 &middot; Bate-Volta &middot; Equipe T&eacute;cnica</div>
+
+<label class="item"><input type="checkbox" onchange="upd()">
+  <div><div class="t">Igor Gama</div><div class="h">Uma palavra, uma escolha, uma frase curta &middot; Sem explicar a hist&oacute;ria</div></div>
+</label>
+<label class="item"><input type="checkbox" onchange="upd()">
+  <div><div class="t">Giu Pera</div><div class="h">Uma palavra, uma escolha, uma frase curta &middot; Sem explicar a hist&oacute;ria</div></div>
+</label>
+<label class="item"><input type="checkbox" onchange="upd()">
+  <div><div class="t">Bruno Junqueira</div><div class="h">Uma palavra, uma escolha, uma frase curta &middot; Sem explicar a hist&oacute;ria</div></div>
+</label>
+<label class="item"><input type="checkbox" onchange="upd()">
+  <div><div class="t">Victoria Pieri</div><div class="h">Uma palavra, uma escolha, uma frase curta &middot; Sem explicar a hist&oacute;ria</div></div>
+</label>
+<label class="item"><input type="checkbox" onchange="upd()">
+  <div><div class="t">Luly de Paula</div><div class="h">Uma palavra, uma escolha, uma frase curta &middot; Sem explicar a hist&oacute;ria</div></div>
+</label>
+<label class="item"><input type="checkbox" onchange="upd()">
+  <div><div class="t">Hebertt Emanoel</div><div class="h">Uma palavra, uma escolha, uma frase curta &middot; Sem explicar a hist&oacute;ria</div></div>
+</label>
+<label class="item"><input type="checkbox" onchange="upd()">
+  <div><div class="t">Enderson Ferreira</div><div class="h">Uma palavra, uma escolha, uma frase curta &middot; Sem explicar a hist&oacute;ria</div></div>
+</label>
+<label class="item"><input type="checkbox" onchange="upd()">
+  <div><div class="t">Camily Viana</div><div class="h">Uma palavra, uma escolha, uma frase curta &middot; Sem explicar a hist&oacute;ria</div></div>
+</label>
+
+<!-- ── Q07 ── -->
+<div class="sec">Q07 &middot; No Set, Eu Fa&ccedil;o &middot; C&acirc;mera / Arte / Figurino / Som</div>
+
+<label class="item"><input type="checkbox" onchange="upd()">
+  <div><div class="t">Igor Gama <span class="sh" style="font-size:13px">fotografia</span></div><div class="h">Fun&ccedil;&atilde;o, maior desafio, como aparece no filme &middot; 30 a 60 segundos</div></div>
+</label>
+<label class="item"><input type="checkbox" onchange="upd()">
+  <div><div class="t">Giu Pera <span class="sh" style="font-size:13px">c&acirc;mera vertical</span></div><div class="h">Fun&ccedil;&atilde;o, maior desafio, como aparece no filme &middot; 30 a 60 segundos</div></div>
+</label>
+<label class="item"><input type="checkbox" onchange="upd()">
+  <div><div class="t">Bruno Junqueira <span class="sh" style="font-size:13px">c&acirc;mera principal</span></div><div class="h">Fun&ccedil;&atilde;o, maior desafio, como aparece no filme &middot; 30 a 60 segundos</div></div>
+</label>
+<label class="item"><input type="checkbox" onchange="upd()">
+  <div><div class="t">Victoria Pieri <span class="sh" style="font-size:13px">som direto</span></div><div class="h">Fun&ccedil;&atilde;o, maior desafio, como aparece no filme &middot; 30 a 60 segundos</div></div>
+</label>
+<label class="item"><input type="checkbox" onchange="upd()">
+  <div><div class="t">Luly de Paula <span class="sh" style="font-size:13px">som</span></div><div class="h">Fun&ccedil;&atilde;o, maior desafio, como aparece no filme &middot; 30 a 60 segundos</div></div>
+</label>
+<label class="item"><input type="checkbox" onchange="upd()">
+  <div><div class="t">Hebertt Emanoel <span class="sh" style="font-size:13px">arte/figurino</span></div><div class="h">Fun&ccedil;&atilde;o, maior desafio, como aparece no filme &middot; 30 a 60 segundos</div></div>
+</label>
+<label class="item"><input type="checkbox" onchange="upd()">
+  <div><div class="t">Camily Viana <span class="sh" style="font-size:13px">maquiagem</span></div><div class="h">Fun&ccedil;&atilde;o, maior desafio, como aparece no filme &middot; 30 a 60 segundos</div></div>
+</label>
+</div>
+<div class="day-panel" id="day13">
+<div class="dayhead"><h1>Dia 13 &middot; 13/06</h1><div class="sub">O clímax visual e a cidade</div></div>
+<div class="prog-bar"><div class="prog-fill" id="bar13"></div></div>
+<div class="stats" id="stats13"></div>
+</div>
+
+<!-- ── AO LONGO DO DIA ── -->
+<div class="sec">Ao longo do dia</div>
+
+<details id="chegada">
+  <summary>
+    <span class="arr">&#9658;</span>
+    <div class="sb"><div class="t">Chegada da equipe</div><div class="h">Perguntas r&aacute;pidas: expectativa do dia, maior desafio, em uma palavra</div></div>
+    <span class="badge" id="b-chegada">0/21</span>
+  </summary>
+  <div class="sub-list">
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Jo&atilde;o <span class="sh">(Tom)</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Pedro <span class="sh">(Rubens)</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Juliana Sp&iacute;nola <span class="sh">dire&ccedil;&atilde;o</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Nat&aacute;lia Braga <span class="sh">produ&ccedil;&atilde;o executiva</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Nick Maia <span class="sh">1&ordm; AD</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Filipe Delcielo <span class="sh">2&ordm; AD (s&oacute; dias 13 e 14)</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Igor Gama <span class="sh">fotografia</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Giu Pera <span class="sh">c&acirc;mera vertical</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Victoria Pieri <span class="sh">som</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Luly de Paula <span class="sh">som</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Enderson Ferreira <span class="sh">maquiagem/figurino/marketing</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camily Viana <span class="sh">maquiagem</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Nairane Gurgel <span class="sh">continuidade</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Nat&atilde; Brolim <span class="sh">making of</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Gabriel Correia <span class="sh">bastidores</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Rayssa Silva <span class="sh">bastidores</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Vit&oacute;ria Beatriz <span class="sh">conte&uacute;do</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Maria Mello <span class="sh">AP geral</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Allan Spada <span class="sh">AP geral</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Luan Oliveira <span class="sh">produ&ccedil;&atilde;o de set</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Bruno Junqueira <span class="sh">c&acirc;mera</span></span></label>
+  </div>
+</details>
+
+<label class="item">
+  <input type="checkbox" onchange="upd()">
+  <div><div class="t">Planos da loca&ccedil;&atilde;o antes de come&ccedil;ar</div>
+  <div class="h">Equipe se organizando, arte montando, c&acirc;mera sendo preparada</div></div>
+</label>
+
+<label class="item">
+  <input type="checkbox" onchange="upd()">
+  <div><div class="t">Foto oficial do dia</div>
+  <div class="h">Geral + espont&acirc;nea + vertical (redes) + horizontal (arquivo)</div></div>
+</label>
+
+<details id="final">
+  <summary>
+    <span class="arr">&#9658;</span>
+    <div class="sb"><div class="t">Final da di&aacute;ria</div><div class="h">Como voc&ecirc; sai desse dia? / Momento mais marcante / Em uma palavra</div></div>
+    <span class="badge" id="b-final">0/9</span>
+  </summary>
+  <div class="sub-list">
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Jo&atilde;o <span class="sh">(Tom)</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Pedro <span class="sh">(Rubens)</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Juliana Sp&iacute;nola</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Nat&aacute;lia Braga</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Nick Maia</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Igor Gama</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Giu Pera</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Enderson Ferreira</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Nat&atilde; Brolim</span></label>
+  </div>
+</details>
+
+<!-- ── Q02 ── -->
+<div class="sec">Q02 &middot; Quando o T&iacute;tulo Acontece</div>
+
+<label class="item">
+  <input type="checkbox" onchange="upd()">
+  <div><div class="t">Igor Gama <span class="sh" style="font-size:13px">fotografia</span></div>
+  <div class="h">Que imagem do filme mais te parece "A (N&atilde;o) Hist&oacute;ria de N&oacute;s Dois"?</div></div>
+</label>
+
+<label class="item">
+  <input type="checkbox" onchange="upd()">
+  <div><div class="t">Nick Maia <span class="sh" style="font-size:13px">1&ordm; AD</span></div>
+  <div class="h">Pensando no ritmo do filme, em que ponto o t&iacute;tulo se revela?</div></div>
+</label>
+
+<label class="item">
+  <input type="checkbox" onchange="upd()">
+  <div><div class="t">Hebertt Emanoel <span class="sh" style="font-size:13px">arte/figurino</span></div>
+  <div class="h">Nos objetos, na arte e no figurino, onde o t&iacute;tulo aparece mais forte?</div></div>
+</label>
+
+<!-- ── Q03 ── -->
+<div class="sec">Q03 &middot; O Que Fica em Cena</div>
+
+<label class="item">
+  <input type="checkbox" onchange="upd()">
+  <div><div class="t">Enderson Ferreira <span class="sh" style="font-size:13px">imagem/marketing</span></div>
+  <div class="h">Pensando como imagem e campanha, o que faz um ativo de cena virar mem&oacute;ria de filme?</div></div>
+</label>
+
+<!-- ── Q05 BLOCO B ── -->
+<div class="sec">Q05 &middot; Por Dentro da Hist&oacute;ria &middot; Bloco B</div>
+
+<details id="q05-joao-b">
+  <summary>
+    <span class="arr">&#9658;</span>
+    <div class="sb"><div class="t">Jo&atilde;o <span class="sh">(Tom)</span></div><div class="h">Entrada no personagem</div></div>
+    <span class="badge" id="b-q05-joao-b">0/7</span>
+  </summary>
+  <div class="sub-list">
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Como voc&ecirc; encontrou esse personagem dentro de voc&ecirc;?</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Qual foi a primeira chave para entender quem ele era?</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">O que nesse personagem &eacute; mais vis&iacute;vel, e o que fica tentando se esconder?</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Como voc&ecirc; entendeu a rela&ccedil;&atilde;o entre os dois: encontro, promessa, risco ou despedida?</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">O que o seu personagem procura no outro que talvez ele nem conseguisse nomear?</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Qual foi a parte mais delicada de construir: a intimidade, a conten&ccedil;&atilde;o ou a vulnerabilidade?</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Em que momento voc&ecirc; sentiu que o personagem realmente encaixou no seu corpo?</span></label>
+  </div>
+</details>
+
+<details id="q05-pedro-b">
+  <summary>
+    <span class="arr">&#9658;</span>
+    <div class="sb"><div class="t">Pedro <span class="sh">(Rubens)</span></div><div class="h">Entrada no personagem</div></div>
+    <span class="badge" id="b-q05-pedro-b">0/7</span>
+  </summary>
+  <div class="sub-list">
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Como voc&ecirc; encontrou esse personagem dentro de voc&ecirc;?</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Qual foi a primeira chave para entender quem ele era?</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">O que nesse personagem &eacute; mais vis&iacute;vel, e o que fica tentando se esconder?</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Como voc&ecirc; entendeu a rela&ccedil;&atilde;o entre os dois: encontro, promessa, risco ou despedida?</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">O que o seu personagem procura no outro que talvez ele nem conseguisse nomear?</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Qual foi a parte mais delicada de construir: a intimidade, a conten&ccedil;&atilde;o ou a vulnerabilidade?</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Em que momento voc&ecirc; sentiu que o personagem realmente encaixou no seu corpo?</span></label>
+  </div>
+</details>
+
+<!-- ── Q07 ── -->
+<div class="sec">Q07 &middot; No Set, Eu Fa&ccedil;o &middot; Produ&ccedil;&atilde;o e Bastidores</div>
+
+<label class="item"><input type="checkbox" onchange="upd()">
+  <div><div class="t">Nat&aacute;lia Braga <span class="sh" style="font-size:13px">produ&ccedil;&atilde;o executiva</span></div><div class="h">Fun&ccedil;&atilde;o, maior desafio, como aparece no filme &middot; 30 a 60 segundos</div></div>
+</label>
+<label class="item"><input type="checkbox" onchange="upd()">
+  <div><div class="t">Nick Maia <span class="sh" style="font-size:13px">1&ordm; AD</span></div><div class="h">Fun&ccedil;&atilde;o, maior desafio, como aparece no filme &middot; 30 a 60 segundos</div></div>
+</label>
+<label class="item"><input type="checkbox" onchange="upd()">
+  <div><div class="t">Nairane Gurgel <span class="sh" style="font-size:13px">continuidade</span></div><div class="h">Fun&ccedil;&atilde;o, maior desafio, como aparece no filme &middot; 30 a 60 segundos</div></div>
+</label>
+<label class="item"><input type="checkbox" onchange="upd()">
+  <div><div class="t">Luan Oliveira <span class="sh" style="font-size:13px">produ&ccedil;&atilde;o de set</span></div><div class="h">Fun&ccedil;&atilde;o, maior desafio, como aparece no filme &middot; 30 a 60 segundos</div></div>
+</label>
+<label class="item"><input type="checkbox" onchange="upd()">
+  <div><div class="t">Nat&atilde; Brolim <span class="sh" style="font-size:13px">making of</span></div><div class="h">Fun&ccedil;&atilde;o, maior desafio, como aparece no filme &middot; 30 a 60 segundos</div></div>
+</label>
+<label class="item"><input type="checkbox" onchange="upd()">
+  <div><div class="t">Enderson Ferreira <span class="sh" style="font-size:13px">marketing/bastidores</span></div><div class="h">Fun&ccedil;&atilde;o, maior desafio, como aparece no filme &middot; 30 a 60 segundos</div></div>
+</label>
+
+<!-- ── Q09 ── -->
+<div class="sec">Q09 &middot; Aperte a M&atilde;o da Pessoa Mais Prov&aacute;vel</div>
+
+<details id="q09">
+  <summary>
+    <span class="arr">&#9658;</span>
+    <div class="sb"><div class="t">Din&acirc;mica de equipe &middot; grupo reunido</div><div class="h">No intervalo ou ao fim da di&aacute;ria &middot; Cada um aperta a m&atilde;o de quem mais combina</div></div>
+    <span class="badge" id="b-q09">0/5</span>
+  </summary>
+  <div class="sub-list">
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Aperte a m&atilde;o de quem mais salva uma di&aacute;ria</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Aperte a m&atilde;o de quem mais faz tr&ecirc;s fun&ccedil;&otilde;es ao mesmo tempo</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Aperte a m&atilde;o de quem mais cuida de todo mundo e esquece de comer</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Aperte a m&atilde;o da pessoa mais parceira do set</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Aperte a m&atilde;o de quem mais acreditou no filme</span></label>
+  </div>
+</details>
+</div>
+<div class="day-panel" id="day14">
+<div class="dayhead"><h1>Dia 14 &middot; 14/06</h1><div class="sub">Memória, despedida e saldo</div></div>
+<div class="prog-bar"><div class="prog-fill" id="bar14"></div></div>
+<div class="stats" id="stats14"></div>
+</div>
+
+<!-- ── AO LONGO DO DIA ── -->
+<div class="sec">Ao longo do dia</div>
+
+<details id="chegada">
+  <summary>
+    <span class="arr">&#9658;</span>
+    <div class="sb"><div class="t">Chegada da equipe</div><div class="h">Perguntas r&aacute;pidas: expectativa do dia, maior desafio, em uma palavra</div></div>
+    <span class="badge" id="b-chegada">0/21</span>
+  </summary>
+  <div class="sub-list">
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Jo&atilde;o <span class="sh">(Tom)</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Pedro <span class="sh">(Rubens)</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Juliana Sp&iacute;nola <span class="sh">dire&ccedil;&atilde;o</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Nat&aacute;lia Braga <span class="sh">produ&ccedil;&atilde;o executiva</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Nick Maia <span class="sh">1&ordm; AD</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Filipe Delcielo <span class="sh">2&ordm; AD</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Igor Gama <span class="sh">fotografia</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Giu Pera <span class="sh">c&acirc;mera vertical</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Hebertt Emanoel <span class="sh">arte/figurino</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Victoria Pieri <span class="sh">som</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Luly de Paula <span class="sh">som</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Enderson Ferreira <span class="sh">maquiagem/figurino/marketing</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camily Viana <span class="sh">maquiagem</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Nairane Gurgel <span class="sh">continuidade</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Nat&atilde; Brolim <span class="sh">making of</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Gabriel Correia <span class="sh">bastidores</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Rayssa Silva <span class="sh">bastidores</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Vit&oacute;ria Beatriz <span class="sh">conte&uacute;do</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Maria Mello <span class="sh">AP geral</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Allan Spada <span class="sh">AP geral</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Luan Oliveira <span class="sh">produ&ccedil;&atilde;o de set</span></span></label>
+  </div>
+</details>
+
+<label class="item">
+  <input type="checkbox" onchange="upd()">
+  <div><div class="t">Planos da loca&ccedil;&atilde;o antes de come&ccedil;ar</div>
+  <div class="h">Equipe se organizando, arte montando, c&acirc;mera sendo preparada</div></div>
+</label>
+
+<label class="item">
+  <input type="checkbox" onchange="upd()">
+  <div><div class="t">Foto oficial do dia</div>
+  <div class="h">Geral + espont&acirc;nea + vertical (redes) + horizontal (arquivo)</div></div>
+</label>
+
+<details id="final">
+  <summary>
+    <span class="arr">&#9658;</span>
+    <div class="sb"><div class="t">Final da di&aacute;ria</div><div class="h">Como voc&ecirc; sai desse dia? / Momento mais marcante / Em uma palavra</div></div>
+    <span class="badge" id="b-final">0/9</span>
+  </summary>
+  <div class="sub-list">
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Jo&atilde;o <span class="sh">(Tom)</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Pedro <span class="sh">(Rubens)</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Juliana Sp&iacute;nola</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Nat&aacute;lia Braga</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Nick Maia</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Igor Gama</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Giu Pera</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Enderson Ferreira</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Nat&atilde; Brolim</span></label>
+  </div>
+</details>
+
+<!-- ── Q04 BLOCO B ── -->
+<div class="sec">Q04 &middot; Fora de Contexto &middot; Bloco B &mdash; Juliana</div>
+
+<details id="q04-juliana">
+  <summary>
+    <span class="arr">&#9658;</span>
+    <div class="sb"><div class="t">Juliana Sp&iacute;nola <span class="sh">dire&ccedil;&atilde;o</span></div><div class="h">Perguntas de aprofundamento</div></div>
+    <span class="badge" id="b-q04-juliana">0/5</span>
+  </summary>
+  <div class="sub-list">
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Qual cena voc&ecirc; mais temeu n&atilde;o conseguir filmar?</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">O que voc&ecirc; precisou largar para esse filme poder existir?</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Tem um momento no set em que voc&ecirc; sentiu que o filme estava te dizendo alguma coisa?</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Como voc&ecirc; sabia quando uma cena estava pronta?</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">O que esse filme te ensinou sobre contar hist&oacute;rias?</span></label>
+  </div>
+</details>
+
+<!-- ── Q04 BLOCO C ── -->
+<div class="sec">Q04 &middot; Fora de Contexto &middot; Bloco C &mdash; Nat&aacute;lia</div>
+
+<details id="q04-natalia">
+  <summary>
+    <span class="arr">&#9658;</span>
+    <div class="sb"><div class="t">Nat&aacute;lia Braga <span class="sh">produ&ccedil;&atilde;o executiva</span></div><div class="h">Perguntas de aprofundamento</div></div>
+    <span class="badge" id="b-q04-natalia">0/5</span>
+  </summary>
+  <div class="sub-list">
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">O que n&atilde;o estava no or&ccedil;amento e entrou assim mesmo?</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Qual foi a decis&atilde;o mais dif&iacute;cil que voc&ecirc; tomou durante a produ&ccedil;&atilde;o?</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Produzir um filme sobre rela&ccedil;&otilde;es muda alguma coisa na forma como voc&ecirc; trabalha em equipe?</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Tem algo que s&oacute; voc&ecirc; sabe sobre esse filme que ainda n&atilde;o apareceu em lugar nenhum?</span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">O que ficou de fora do filme que voc&ecirc; sente falta?</span></label>
+  </div>
+</details>
+
+<!-- ── Q01 FECHAMENTO ── -->
+<div class="sec">Q01 &middot; Fora de Contexto &middot; Fechamento da equipe t&eacute;cnica</div>
+
+<details id="q01-nick">
+  <summary><span class="arr">&#9658;</span><div class="sb"><div class="t">Nick Maia <span class="sh">1&ordm; AD</span></div></div><span class="badge" id="b-q01-nick">0/2</span></summary>
+  <div class="sub-list">
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 1 <span class="sh">Qual frase do roteiro mais te pegou desprevenido?</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 2 <span class="sh">Se esse filme fosse uma conversa, o que ele estaria tentando dizer pra voc&ecirc;?</span></span></label>
+  </div>
+</details>
+
+<details id="q01-igor">
+  <summary><span class="arr">&#9658;</span><div class="sb"><div class="t">Igor Gama <span class="sh">fotografia</span></div></div><span class="badge" id="b-q01-igor">0/2</span></summary>
+  <div class="sub-list">
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 1 <span class="sh">Qual frase do roteiro mais te pegou desprevenido?</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 2 <span class="sh">Se esse filme fosse uma conversa, o que ele estaria tentando dizer pra voc&ecirc;?</span></span></label>
+  </div>
+</details>
+
+<details id="q01-giu">
+  <summary><span class="arr">&#9658;</span><div class="sb"><div class="t">Giu Pera <span class="sh">c&acirc;mera vertical</span></div></div><span class="badge" id="b-q01-giu">0/2</span></summary>
+  <div class="sub-list">
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 1 <span class="sh">Qual frase do roteiro mais te pegou desprevenido?</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 2 <span class="sh">Se esse filme fosse uma conversa, o que ele estaria tentando dizer pra voc&ecirc;?</span></span></label>
+  </div>
+</details>
+
+<details id="q01-victoria">
+  <summary><span class="arr">&#9658;</span><div class="sb"><div class="t">Victoria Pieri <span class="sh">som</span></div></div><span class="badge" id="b-q01-victoria">0/2</span></summary>
+  <div class="sub-list">
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 1 <span class="sh">Qual frase do roteiro mais te pegou desprevenido?</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 2 <span class="sh">Se esse filme fosse uma conversa, o que ele estaria tentando dizer pra voc&ecirc;?</span></span></label>
+  </div>
+</details>
+
+<details id="q01-luly">
+  <summary><span class="arr">&#9658;</span><div class="sb"><div class="t">Luly de Paula <span class="sh">som</span></div></div><span class="badge" id="b-q01-luly">0/2</span></summary>
+  <div class="sub-list">
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 1 <span class="sh">Qual frase do roteiro mais te pegou desprevenido?</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 2 <span class="sh">Se esse filme fosse uma conversa, o que ele estaria tentando dizer pra voc&ecirc;?</span></span></label>
+  </div>
+</details>
+
+<details id="q01-nairane">
+  <summary><span class="arr">&#9658;</span><div class="sb"><div class="t">Nairane Gurgel <span class="sh">continuidade</span></div></div><span class="badge" id="b-q01-nairane">0/2</span></summary>
+  <div class="sub-list">
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 1 <span class="sh">Qual frase do roteiro mais te pegou desprevenido?</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 2 <span class="sh">Se esse filme fosse uma conversa, o que ele estaria tentando dizer pra voc&ecirc;?</span></span></label>
+  </div>
+</details>
+
+<details id="q01-nata">
+  <summary><span class="arr">&#9658;</span><div class="sb"><div class="t">Nat&atilde; Brolim <span class="sh">making of</span></div></div><span class="badge" id="b-q01-nata">0/2</span></summary>
+  <div class="sub-list">
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 1 <span class="sh">Qual frase do roteiro mais te pegou desprevenido?</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 2 <span class="sh">Se esse filme fosse uma conversa, o que ele estaria tentando dizer pra voc&ecirc;?</span></span></label>
+  </div>
+</details>
+
+<details id="q01-gabriel">
+  <summary><span class="arr">&#9658;</span><div class="sb"><div class="t">Gabriel Correia <span class="sh">bastidores</span></div></div><span class="badge" id="b-q01-gabriel">0/2</span></summary>
+  <div class="sub-list">
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 1 <span class="sh">Qual frase do roteiro mais te pegou desprevenido?</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 2 <span class="sh">Se esse filme fosse uma conversa, o que ele estaria tentando dizer pra voc&ecirc;?</span></span></label>
+  </div>
+</details>
+
+<details id="q01-rayssa">
+  <summary><span class="arr">&#9658;</span><div class="sb"><div class="t">Rayssa Silva <span class="sh">bastidores</span></div></div><span class="badge" id="b-q01-rayssa">0/2</span></summary>
+  <div class="sub-list">
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 1 <span class="sh">Qual frase do roteiro mais te pegou desprevenido?</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 2 <span class="sh">Se esse filme fosse uma conversa, o que ele estaria tentando dizer pra voc&ecirc;?</span></span></label>
+  </div>
+</details>
+
+<details id="q01-vitoria">
+  <summary><span class="arr">&#9658;</span><div class="sb"><div class="t">Vit&oacute;ria Beatriz <span class="sh">conte&uacute;do</span></div></div><span class="badge" id="b-q01-vitoria">0/2</span></summary>
+  <div class="sub-list">
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 1 <span class="sh">Qual frase do roteiro mais te pegou desprevenido?</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 2 <span class="sh">Se esse filme fosse uma conversa, o que ele estaria tentando dizer pra voc&ecirc;?</span></span></label>
+  </div>
+</details>
+
+<details id="q01-maria">
+  <summary><span class="arr">&#9658;</span><div class="sb"><div class="t">Maria Mello <span class="sh">AP geral</span></div></div><span class="badge" id="b-q01-maria">0/2</span></summary>
+  <div class="sub-list">
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 1 <span class="sh">Qual frase do roteiro mais te pegou desprevenido?</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 2 <span class="sh">Se esse filme fosse uma conversa, o que ele estaria tentando dizer pra voc&ecirc;?</span></span></label>
+  </div>
+</details>
+
+<details id="q01-allan">
+  <summary><span class="arr">&#9658;</span><div class="sb"><div class="t">Allan Spada <span class="sh">AP geral</span></div></div><span class="badge" id="b-q01-allan">0/2</span></summary>
+  <div class="sub-list">
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 1 <span class="sh">Qual frase do roteiro mais te pegou desprevenido?</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 2 <span class="sh">Se esse filme fosse uma conversa, o que ele estaria tentando dizer pra voc&ecirc;?</span></span></label>
+  </div>
+</details>
+
+<details id="q01-luan">
+  <summary><span class="arr">&#9658;</span><div class="sb"><div class="t">Luan Oliveira <span class="sh">produ&ccedil;&atilde;o de set</span></div></div><span class="badge" id="b-q01-luan">0/2</span></summary>
+  <div class="sub-list">
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 1 <span class="sh">Qual frase do roteiro mais te pegou desprevenido?</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 2 <span class="sh">Se esse filme fosse uma conversa, o que ele estaria tentando dizer pra voc&ecirc;?</span></span></label>
+  </div>
+</details>
+
+<details id="q01-bruno">
+  <summary><span class="arr">&#9658;</span><div class="sb"><div class="t">Bruno Junqueira <span class="sh">c&acirc;mera</span></div></div><span class="badge" id="b-q01-bruno">0/2</span></summary>
+  <div class="sub-list">
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 1 <span class="sh">Qual frase do roteiro mais te pegou desprevenido?</span></span></label>
+    <label class="si"><input type="checkbox" onchange="upd()"><span class="sn">Camada 2 <span class="sh">Se esse filme fosse uma conversa, o que ele estaria tentando dizer pra voc&ecirc;?</span></span></label>
+  </div>
+</details>
+
+<!-- ── Q08 ── -->
+<div class="sec">Q08 &middot; Repert&oacute;rio &middot; Equipe t&eacute;cnica restante</div>
+
+<label class="item"><input type="checkbox" onchange="upd()">
+  <div><div class="t">Nick Maia <span class="sh" style="font-size:13px">1&ordm; AD</span></div><div class="h">Indica&ccedil;&atilde;o cultural + o que esse filme te fez revisitar + o que voc&ecirc; consumiu durante a produ&ccedil;&atilde;o</div></div>
+</label>
+<label class="item"><input type="checkbox" onchange="upd()">
+  <div><div class="t">Igor Gama <span class="sh" style="font-size:13px">fotografia</span></div><div class="h">Indica&ccedil;&atilde;o cultural + o que esse filme te fez revisitar + o que voc&ecirc; consumiu durante a produ&ccedil;&atilde;o</div></div>
+</label>
+<label class="item"><input type="checkbox" onchange="upd()">
+  <div><div class="t">Giu Pera <span class="sh" style="font-size:13px">c&acirc;mera vertical</span></div><div class="h">Indica&ccedil;&atilde;o cultural + o que esse filme te fez revisitar + o que voc&ecirc; consumiu durante a produ&ccedil;&atilde;o</div></div>
+</label>
+<label class="item"><input type="checkbox" onchange="upd()">
+  <div><div class="t">Hebertt Emanoel <span class="sh" style="font-size:13px">arte/figurino</span></div><div class="h">Indica&ccedil;&atilde;o cultural + o que esse filme te fez revisitar + o que voc&ecirc; consumiu durante a produ&ccedil;&atilde;o</div></div>
+</label>
+<label class="item"><input type="checkbox" onchange="upd()">
+  <div><div class="t">Nat&atilde; Brolim <span class="sh" style="font-size:13px">making of</span></div><div class="h">Indica&ccedil;&atilde;o cultural + o que esse filme te fez revisitar + o que voc&ecirc; consumiu durante a produ&ccedil;&atilde;o</div></div>
+</label>
+<label class="item"><input type="checkbox" onchange="upd()">
+  <div><div class="t">Luan Oliveira <span class="sh" style="font-size:13px">produ&ccedil;&atilde;o de set</span></div><div class="h">Indica&ccedil;&atilde;o cultural + o que esse filme te fez revisitar + o que voc&ecirc; consumiu durante a produ&ccedil;&atilde;o</div></div>
+</label>
+
+<!-- ── Q10 ── -->
+<div class="sec">Q10 &middot; Audiovisual Brasileiro</div>
+
+<label class="item"><input type="checkbox" onchange="upd()">
+  <div><div class="t">Jo&atilde;o <span class="sh" style="font-size:13px">Tom</span></div><div class="h">Um filme brasileiro que te formou + um que te define hoje + um que voc&ecirc; indicaria pra quem nunca assistiu audiovisual nacional</div></div>
+</label>
+<label class="item"><input type="checkbox" onchange="upd()">
+  <div><div class="t">Pedro <span class="sh" style="font-size:13px">Rubens</span></div><div class="h">Um filme brasileiro que te formou + um que te define hoje + um que voc&ecirc; indicaria pra quem nunca assistiu audiovisual nacional</div></div>
+</label>
+<label class="item"><input type="checkbox" onchange="upd()">
+  <div><div class="t">Juliana Sp&iacute;nola <span class="sh" style="font-size:13px">dire&ccedil;&atilde;o</span></div><div class="h">Um filme brasileiro que te formou + um que te define hoje + um que voc&ecirc; indicaria pra quem nunca assistiu audiovisual nacional</div></div>
+</label>
+<label class="item"><input type="checkbox" onchange="upd()">
+  <div><div class="t">Nat&aacute;lia Braga <span class="sh" style="font-size:13px">produ&ccedil;&atilde;o executiva</span></div><div class="h">Um filme brasileiro que te formou + um que te define hoje + um que voc&ecirc; indicaria pra quem nunca assistiu audiovisual nacional</div></div>
+</label>
+<label class="item"><input type="checkbox" onchange="upd()">
+  <div><div class="t">Igor Gama <span class="sh" style="font-size:13px">fotografia</span></div><div class="h">Um filme brasileiro que te formou + um que te define hoje + um que voc&ecirc; indicaria pra quem nunca assistiu audiovisual nacional</div></div>
+</label>
+<label class="item"><input type="checkbox" onchange="upd()">
+  <div><div class="t">Nick Maia <span class="sh" style="font-size:13px">1&ordm; AD</span></div><div class="h">Um filme brasileiro que te formou + um que te define hoje + um que voc&ecirc; indicaria pra quem nunca assistiu audiovisual nacional</div></div>
+</label>
+<label class="item"><input type="checkbox" onchange="upd()">
+  <div><div class="t">Nat&atilde; Brolim <span class="sh" style="font-size:13px">making of</span></div><div class="h">Um filme brasileiro que te formou + um que te define hoje + um que voc&ecirc; indicaria pra quem nunca assistiu audiovisual nacional</div></div>
+</label>
+<label class="item"><input type="checkbox" onchange="upd()">
+  <div><div class="t">Enderson Ferreira <span class="sh" style="font-size:13px">marketing/bastidores</span></div><div class="h">Um filme brasileiro que te formou + um que te define hoje + um que voc&ecirc; indicaria pra quem nunca assistiu audiovisual nacional</div></div>
+</label>
+
+<!-- ── FOTO GERAL ── -->
+<div class="sec">Encerramento</div>
+
+<label class="item">
+  <input type="checkbox" onchange="upd()">
+  <div><div class="t">Foto geral da equipe</div>
+  <div class="h">Toda a equipe presente &middot; produzida + espont&acirc;nea &middot; vertical e horizontal</div></div>
+</label>
+</div>
+<script>
+var DAYS = ["11","12","13","14"];
+var DET11 = [ { id:"chegada", bid:"b-chegada" }, { id:"final", bid:"b-final" }, { id:"q01-joao", bid:"b-q01-joao" }, { id:"q01-pedro", bid:"b-q01-pedro" }, { id:"q01-juliana", bid:"b-q01-juliana" }, { id:"q01-natalia", bid:"b-q01-natalia" } ];
+var DET12 = [ { id:"chegada", bid:"b-chegada" }, { id:"final", bid:"b-final" }, { id:"q05-joao", bid:"b-q05-joao" }, { id:"q05-pedro", bid:"b-q05-pedro" }, { id:"q01-enderson", bid:"b-q01-enderson" }, { id:"q01-camily", bid:"b-q01-camily" }, { id:"q01-hebertt", bid:"b-q01-hebertt" } ];
+var DET13 = [ { id:"chegada", bid:"b-chegada" }, { id:"final", bid:"b-final" }, { id:"q05-joao-b", bid:"b-q05-joao-b" }, { id:"q05-pedro-b", bid:"b-q05-pedro-b" }, { id:"q09", bid:"b-q09" } ];
+var DET14 = [ { id:"chegada", bid:"b-chegada" }, { id:"final", bid:"b-final" }, { id:"q04-juliana", bid:"b-q04-juliana" }, { id:"q04-natalia", bid:"b-q04-natalia" }, { id:"q01-nick", bid:"b-q01-nick" }, { id:"q01-igor", bid:"b-q01-igor" }, { id:"q01-giu", bid:"b-q01-giu" }, { id:"q01-victoria", bid:"b-q01-victoria" }, { id:"q01-luly", bid:"b-q01-luly" }, { id:"q01-nairane", bid:"b-q01-nairane" }, { id:"q01-nata", bid:"b-q01-nata" }, { id:"q01-gabriel", bid:"b-q01-gabriel" }, { id:"q01-rayssa", bid:"b-q01-rayssa" }, { id:"q01-vitoria", bid:"b-q01-vitoria" }, { id:"q01-maria", bid:"b-q01-maria" }, { id:"q01-allan", bid:"b-q01-allan" }, { id:"q01-luan", bid:"b-q01-luan" }, { id:"q01-bruno", bid:"b-q01-bruno" } ];
+
+function showDay(n) {
+  DAYS.forEach(function(d) {
+    document.getElementById("day"+d).classList.toggle("active", d==String(n));
+    document.getElementById("btn"+d).classList.toggle("active", d==String(n));
+  });
+}
+function upd(n) {
+  var panel = document.getElementById("day"+n);
+  var all = panel.querySelectorAll("input[type=checkbox]");
+  var total=all.length, done=0;
+  for(var i=0;i<all.length;i++) if(all[i].checked) done++;
+  var pct = total ? Math.round(done/total*100) : 0;
+  document.getElementById("bar"+n).style.width = pct+"%";
+  document.getElementById("stats"+n).innerHTML = "<b>"+done+"</b> de <b>"+total+"</b> captados";
+  var det = window["DET"+n];
+  for(var d=0;d<det.length;d++) {
+    var el = panel.querySelector("#"+det[d].id);
+    if(!el) continue;
+    var subs = el.querySelectorAll("input[type=checkbox]");
+    var sdone=0;
+    for(var s=0;s<subs.length;s++) if(subs[s].checked) sdone++;
+    var badge = panel.querySelector("#"+det[d].bid);
+    if(badge) badge.textContent = sdone+"/"+subs.length;
+    if(sdone===subs.length && subs.length>0) el.classList.add("ok");
+    else el.classList.remove("ok");
+  }
+}
+// wire all checkboxes
+DAYS.forEach(function(n) {
+  var panel = document.getElementById("day"+n);
+  panel.querySelectorAll("input[type=checkbox]").forEach(function(cb) {
+    cb.addEventListener("change", function() { upd(n); });
+  });
+  upd(n);
+});
+
+</script>
+</body></html>
