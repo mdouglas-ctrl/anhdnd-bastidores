@@ -76,6 +76,15 @@ label.si input{width:16px;height:16px;accent-color:#1a1a1a;flex-shrink:0;cursor:
 .pv-item input{width:16px;height:16px;accent-color:#1a1a1a;flex-shrink:0;cursor:pointer}
 .pv-frame{font-size:13px;line-height:1.3}
 .pv-sec-lbl{font-size:11px;color:#aaa;margin-top:1px}
+/* QUADROS (nível 2) */
+.pv-fdet{background:#fafaf8;border:1px solid #f0f0ee;border-radius:8px;margin-bottom:5px;overflow:hidden}
+.pv-fdet[open]{border-color:#ddd}
+.pv-fdet[data-done]>.pv-fsum{opacity:.4}
+.pv-fdet[data-done]>.pv-fsum .pv-frame{text-decoration:line-through}
+.pv-fsum{list-style:none;display:flex;align-items:center;gap:8px;padding:9px 12px;cursor:pointer;-webkit-user-select:none;user-select:none}
+.pv-fsum::-webkit-details-marker{display:none}
+.pv-fsum:hover{background:#f5f5f2}
+.pv-flist{padding:4px 12px 8px 12px;border-top:1px solid #f0f0f0}
 /* LOCKED BANNER */
 .lkbanner{background:#f0f0ee;border-bottom:1px solid #e0e0de;padding:8px 16px;font-size:12px;color:#888;text-align:center;-webkit-user-select:none;user-select:none}
 /* DAYBTN LOCKED */
@@ -1217,7 +1226,7 @@ updFinBar();
 // Stamp unique index on every si checkbox for cross-referencing
 (function() {
   var i = 0;
-  document.querySelectorAll('label.si input[type=checkbox]').forEach(function(cb) {
+  document.querySelectorAll('.day-panel input[type=checkbox]').forEach(function(cb) {
     cb.setAttribute('data-pvidx', i++);
   });
 })();
@@ -1236,37 +1245,73 @@ function showPeople() {
 function buildPVIndex() {
   var index = {}, order = [];
   var days = [11, 12, 13, 14];
+
+  function tn(el) {
+    var t = '';
+    el.childNodes.forEach(function(n) { if (n.nodeType === 3) t += n.textContent; });
+    return t.trim();
+  }
+
   days.forEach(function(d) {
     var panel = document.getElementById('day' + d);
     var sec = 'Geral';
-    panel.querySelectorAll('.sec, details').forEach(function(el) {
+    panel.querySelectorAll('.sec, details, label.item').forEach(function(el) {
       if (el.parentNode !== panel) return;
-      if (el.classList.contains('sec')) {
-        sec = el.textContent.trim();
+
+      if (el.classList.contains('sec')) { sec = el.textContent.trim(); return; }
+
+      if (el.tagName === 'DETAILS') {
+        var tEl = el.querySelector('.t');
+        var frameTitle = tEl ? tEl.textContent.trim() : '?';
+        var frameTitleClean = tEl ? tn(tEl) : frameTitle;
+        var hEl = el.querySelector('.h');
+        var hint = hEl ? hEl.textContent.trim() : '';
+
+        if (index[frameTitleClean]) {
+          // details cujo título É a pessoa (ex: q01-joao) — sub-itens são as perguntas
+          var pf = {title: sec, hint: '', day: d, items: []};
+          el.querySelectorAll('label.si').forEach(function(si) {
+            var cb = si.querySelector('input[type=checkbox]');
+            if (!cb) return;
+            var sn = si.querySelector('.sn');
+            pf.items.push({label: sn ? sn.textContent.trim() : '?', pvidx: cb.getAttribute('data-pvidx')});
+          });
+          if (pf.items.length) index[frameTitleClean].frames.push(pf);
+        } else {
+          // details geral (ex: chegada, guardanapo) — cada label.si é uma pessoa
+          el.querySelectorAll('label.si').forEach(function(si) {
+            var cb = si.querySelector('input[type=checkbox]');
+            if (!cb) return;
+            var sn = si.querySelector('.sn');
+            var name = sn ? tn(sn) : '';
+            if (!name) return;
+            var sh = sn ? sn.querySelector('.sh') : null;
+            var role = sh ? sh.textContent.trim() : '';
+            if (!index[name]) { index[name] = {role: role, frames: []}; order.push(name); }
+            else if (!index[name].role && role) index[name].role = role;
+            var pf = {title: frameTitle, hint: hint, day: d, items: []};
+            pf.items.push({label: sn.textContent.trim(), pvidx: cb.getAttribute('data-pvidx')});
+            index[name].frames.push(pf);
+          });
+        }
         return;
       }
-      // DETAILS
-      var frameEl = el.querySelector('.t');
-      var frame = frameEl ? frameEl.textContent.trim() : '?';
-      el.querySelectorAll('label.si').forEach(function(si) {
-          var cb = si.querySelector('input[type=checkbox]');
-          if (!cb) return;
-          var sn = si.querySelector('.sn');
-          var name = '';
-          if (sn) {
-            sn.childNodes.forEach(function(node) {
-              if (node.nodeType === 3) name += node.textContent;
-            });
-            name = name.trim();
-          }
-          if (!name) return;
-          var sh = sn ? sn.querySelector('.sh') : null;
-          var role = sh ? sh.textContent.trim() : '';
-          if (!index[name]) { index[name] = {role: role, items: []}; order.push(name); }
-          index[name].items.push({day: d, sec: sec, frame: frame, pvidx: cb.getAttribute('data-pvidx')});
-        });
-      });
+
+      // label.item — verifica se nomeia uma pessoa conhecida
+      if (el.classList.contains('item')) {
+        var tEl = el.querySelector('.t');
+        if (!tEl) return;
+        var name = tn(tEl);
+        if (!index[name]) return;
+        var cb = el.querySelector('input[type=checkbox]');
+        if (!cb) return;
+        var hEl = el.querySelector('.h');
+        var taskLabel = hEl ? hEl.textContent.trim() : tEl.textContent.trim();
+        index[name].frames.push({title: sec, hint: '', day: d, items: [{label: taskLabel, pvidx: cb.getAttribute('data-pvidx')}]});
+      }
+    });
   });
+
   order.sort();
   return {index: index, order: order};
 }
@@ -1284,110 +1329,116 @@ function renderPV() {
 
   names.forEach(function(name) {
     var data = index[name];
-    var total = data.items.length;
+    var allItems = [];
+    data.frames.forEach(function(f) { f.items.forEach(function(it) { allItems.push(it); }); });
+    var total = allItems.length;
 
     var countDone = function() {
-      return data.items.filter(function(item) {
-        var c = document.querySelector('input[data-pvidx="' + item.pvidx + '"]');
+      return allItems.filter(function(it) {
+        var c = document.querySelector('input[data-pvidx="' + it.pvidx + '"]');
         return c && c.checked;
       }).length;
     };
 
+    // ── Pessoa (nível 1) ──────────────────────────────────────────────────
     var det = document.createElement('details');
     det.className = 'pv-person';
     if (countDone() === total && total > 0) det.setAttribute('data-done', '1');
 
-    // Summary
     var sum = document.createElement('summary');
     sum.className = 'pv-sum';
-    var arrSpan = document.createElement('span');
-    arrSpan.className = 'arr';
-    arrSpan.innerHTML = '&#9658;';
-    var sbDiv = document.createElement('div');
-    sbDiv.className = 'sb';
-    var tDiv = document.createElement('div');
-    tDiv.className = 't';
-    tDiv.textContent = name;
+    var arr1 = document.createElement('span'); arr1.className = 'arr'; arr1.innerHTML = '&#9658;';
+    var sb1 = document.createElement('div'); sb1.className = 'sb';
+    var t1 = document.createElement('div'); t1.className = 't'; t1.textContent = name;
     if (data.role) {
-      var roleSpan = document.createElement('span');
-      roleSpan.className = 'sh';
-      roleSpan.textContent = ' ' + data.role;
-      tDiv.appendChild(roleSpan);
+      var rs = document.createElement('span'); rs.className = 'sh'; rs.textContent = ' ' + data.role; t1.appendChild(rs);
     }
-    sbDiv.appendChild(tDiv);
-    var badge = document.createElement('span');
-    badge.className = 'badge';
-    badge.textContent = countDone() + '/' + total;
-    sum.appendChild(arrSpan);
-    sum.appendChild(sbDiv);
-    sum.appendChild(badge);
+    sb1.appendChild(t1);
+    var badge = document.createElement('span'); badge.className = 'badge'; badge.textContent = countDone() + '/' + total;
+    sum.appendChild(arr1); sum.appendChild(sb1); sum.appendChild(badge);
     det.appendChild(sum);
 
-    // Body
     var body = document.createElement('div');
     body.className = 'pv-body';
 
+    // Nota
     var noteKey = 'anhdnd_note_' + name.replace(/[^a-z0-9]/gi, '_');
     var ta = document.createElement('textarea');
-    ta.className = 'pv-note';
-    ta.placeholder = 'Observação...';
-    ta.value = localStorage.getItem(noteKey) || '';
-    ta.rows = 2;
+    ta.className = 'pv-note'; ta.placeholder = 'Observação...';
+    ta.value = localStorage.getItem(noteKey) || ''; ta.rows = 2;
     ta.addEventListener('input', function() { localStorage.setItem(noteKey, ta.value); });
     body.appendChild(ta);
 
-    var byDay = {};
-    data.items.forEach(function(item) {
-      if (!byDay[item.day]) byDay[item.day] = [];
-      byDay[item.day].push(item);
-    });
+    // ── Quadros (nível 2) ─────────────────────────────────────────────────
+    data.frames.forEach(function(frame) {
+      var fDone = function() {
+        return frame.items.filter(function(it) {
+          var c = document.querySelector('input[data-pvidx="' + it.pvidx + '"]');
+          return c && c.checked;
+        }).length;
+      };
 
-    [11, 12, 13, 14].forEach(function(d) {
-      if (!byDay[d]) return;
-      var dl = document.createElement('div');
-      dl.className = 'pv-day-label';
-      dl.textContent = 'Dia ' + d;
-      body.appendChild(dl);
+      var fdet = document.createElement('details');
+      fdet.className = 'pv-fdet';
+      if (fDone() === frame.items.length && frame.items.length > 0) fdet.setAttribute('data-done', '1');
 
-      byDay[d].forEach(function(item) {
+      var fsum = document.createElement('summary');
+      fsum.className = 'pv-fsum';
+      var arr2 = document.createElement('span'); arr2.className = 'arr'; arr2.innerHTML = '&#9658;';
+      var sb2 = document.createElement('div'); sb2.className = 'sb';
+      var ft = document.createElement('div'); ft.className = 'pv-frame'; ft.textContent = frame.title;
+      sb2.appendChild(ft);
+      if (frame.hint) {
+        var fh = document.createElement('div'); fh.className = 'pv-sec-lbl'; fh.textContent = frame.hint;
+        sb2.appendChild(fh);
+      }
+      var dbadge = document.createElement('span');
+      dbadge.className = 'badge';
+      dbadge.style.cssText = 'background:#e8f0fe;color:#3a5a8a;margin-right:4px';
+      dbadge.textContent = 'D' + frame.day;
+      var fbadge = document.createElement('span'); fbadge.className = 'badge'; fbadge.textContent = fDone() + '/' + frame.items.length;
+      fsum.appendChild(arr2); fsum.appendChild(sb2); fsum.appendChild(dbadge); fsum.appendChild(fbadge);
+      fdet.appendChild(fsum);
+
+      // ── Perguntas (nível 3) ─────────────────────────────────────────────
+      var flist = document.createElement('div');
+      flist.className = 'pv-flist';
+
+      frame.items.forEach(function(item) {
         var orig = document.querySelector('input[data-pvidx="' + item.pvidx + '"]');
         if (!orig) return;
 
         var lbl = document.createElement('label');
         lbl.className = 'pv-item';
 
-        var mirrorCb = document.createElement('input');
-        mirrorCb.type = 'checkbox';
-        mirrorCb.checked = orig.checked;
-        mirrorCb.disabled = orig.disabled;
+        var mcb = document.createElement('input');
+        mcb.type = 'checkbox'; mcb.checked = orig.checked; mcb.disabled = orig.disabled;
 
-        (function(orig, mirrorCb) {
-          mirrorCb.addEventListener('change', function() {
-            orig.checked = mirrorCb.checked;
+        (function(orig, mcb, fbadge, fdet) {
+          mcb.addEventListener('change', function() {
+            orig.checked = mcb.checked;
             orig.dispatchEvent(new Event('change', {bubbles: true}));
-            var d2 = countDone();
-            badge.textContent = d2 + '/' + total;
-            if (d2 === total && total > 0) det.setAttribute('data-done', '1');
+            var fd = fDone();
+            fbadge.textContent = fd + '/' + frame.items.length;
+            if (fd === frame.items.length) fdet.setAttribute('data-done', '1');
+            else fdet.removeAttribute('data-done');
+            var pd = countDone();
+            badge.textContent = pd + '/' + total;
+            if (pd === total && total > 0) det.setAttribute('data-done', '1');
             else det.removeAttribute('data-done');
           });
-        })(orig, mirrorCb);
+        })(orig, mcb, fbadge, fdet);
 
-        var infoDiv = document.createElement('div');
-        var frameDiv = document.createElement('div');
-        frameDiv.className = 'pv-frame';
-        frameDiv.textContent = item.frame;
-        infoDiv.appendChild(frameDiv);
-        if (item.sec && item.sec !== 'Geral') {
-          var secDiv = document.createElement('div');
-          secDiv.className = 'pv-sec-lbl';
-          secDiv.textContent = item.sec;
-          infoDiv.appendChild(secDiv);
-        }
+        var info = document.createElement('div');
+        var il = document.createElement('div'); il.className = 'pv-frame'; il.textContent = item.label;
+        info.appendChild(il);
 
-        lbl.appendChild(mirrorCb);
-        lbl.appendChild(infoDiv);
-        body.appendChild(lbl);
+        lbl.appendChild(mcb); lbl.appendChild(info);
+        flist.appendChild(lbl);
       });
+
+      fdet.appendChild(flist);
+      body.appendChild(fdet);
     });
 
     det.appendChild(body);
