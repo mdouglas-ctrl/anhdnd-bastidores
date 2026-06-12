@@ -1121,24 +1121,21 @@ DAYS.forEach(function(n) {
 document.getElementById('fin-btn').addEventListener('click', function() { fmOpen(currentDay); });
 
 function getPending(n) {
-  var days = [11, 12, 13, 14];
-  var idx = days.indexOf(parseInt(n));
-  var startEl = document.getElementById('day' + n);
-  var endEl = idx < 3 ? document.getElementById('day' + days[idx + 1]) : null;
+  var panel = document.getElementById('day' + n);
   var result = [], sec = 'Geral';
-  var curr = startEl.nextElementSibling;
-  while (curr && curr !== endEl) {
-    if (curr.classList.contains('sec')) {
-      sec = curr.textContent.trim();
-    } else if (curr.classList.contains('item')) {
-      var cb = curr.querySelector('input[type=checkbox]');
+  panel.querySelectorAll('.sec, label.item, details').forEach(function(el) {
+    if (el.parentNode !== panel) return;
+    if (el.classList.contains('sec')) {
+      sec = el.textContent.trim();
+    } else if (el.classList.contains('item')) {
+      var cb = el.querySelector('input[type=checkbox]');
       if (cb && !cb.checked) {
-        var t = curr.querySelector('.t');
+        var t = el.querySelector('.t');
         result.push({sec: sec, text: t ? t.textContent.trim() : ''});
       }
-    } else if (curr.tagName === 'DETAILS') {
+    } else if (el.tagName === 'DETAILS') {
       var unchecked = [];
-      curr.querySelectorAll('label.si').forEach(function(si) {
+      el.querySelectorAll('label.si').forEach(function(si) {
         var cb = si.querySelector('input[type=checkbox]');
         if (cb && !cb.checked) {
           var sn = si.querySelector('.sn');
@@ -1146,13 +1143,12 @@ function getPending(n) {
         }
       });
       if (unchecked.length) {
-        var t = curr.querySelector('.t');
+        var t = el.querySelector('.t');
         var grp = t ? t.textContent.trim() : '';
         unchecked.forEach(function(nm) { result.push({sec: sec, text: grp + ' \u00b7 ' + nm}); });
       }
     }
-    curr = curr.nextElementSibling;
-  }
+  });
   return result;
 }
 
@@ -1184,15 +1180,7 @@ function fmConfirm() {
 }
 
 function lockDay(n) {
-  var days = [11, 12, 13, 14];
-  var idx = days.indexOf(parseInt(n));
-  var startEl = document.getElementById('day' + n);
-  var endEl = idx < 3 ? document.getElementById('day' + days[idx + 1]) : null;
-  var curr = startEl.nextElementSibling;
-  while (curr && curr !== endEl) {
-    curr.querySelectorAll('input[type=checkbox]').forEach(function(cb) { cb.disabled = true; });
-    curr = curr.nextElementSibling;
-  }
+  document.getElementById('day' + n).querySelectorAll('input[type=checkbox]').forEach(function(cb) { cb.disabled = true; });
   var now = new Date();
   var hhmm = ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
   var banner = document.getElementById('lkb' + n);
@@ -1204,15 +1192,7 @@ function lockDay(n) {
 }
 
 function unlockDay(n) {
-  var days = [11, 12, 13, 14];
-  var idx = days.indexOf(parseInt(n));
-  var startEl = document.getElementById('day' + n);
-  var endEl = idx < 3 ? document.getElementById('day' + days[idx + 1]) : null;
-  var curr = startEl.nextElementSibling;
-  while (curr && curr !== endEl) {
-    curr.querySelectorAll('input[type=checkbox]').forEach(function(cb) { cb.disabled = false; });
-    curr = curr.nextElementSibling;
-  }
+  document.getElementById('day' + n).querySelectorAll('input[type=checkbox]').forEach(function(cb) { cb.disabled = false; });
   document.getElementById('lkb' + n).style.display = 'none';
   document.getElementById('btn' + n).classList.remove('locked');
   localStorage.removeItem('anhdnd_locked_day' + n);
@@ -1223,15 +1203,7 @@ function unlockDay(n) {
 DAYS.forEach(function(n) {
   var t = localStorage.getItem('anhdnd_locked_day' + n);
   if (t) {
-    var days = [11, 12, 13, 14];
-    var idx = days.indexOf(parseInt(n));
-    var startEl = document.getElementById('day' + n);
-    var endEl = idx < 3 ? document.getElementById('day' + days[idx + 1]) : null;
-    var curr = startEl.nextElementSibling;
-    while (curr && curr !== endEl) {
-      curr.querySelectorAll('input[type=checkbox]').forEach(function(cb) { cb.disabled = true; });
-      curr = curr.nextElementSibling;
-    }
+    document.getElementById('day' + n).querySelectorAll('input[type=checkbox]').forEach(function(cb) { cb.disabled = true; });
     var banner = document.getElementById('lkb' + n);
     banner.textContent = 'Dia finalizado \u00b7 ' + t;
     banner.style.display = 'block';
@@ -1265,18 +1237,18 @@ function buildPVIndex() {
   var index = {}, order = [];
   var days = [11, 12, 13, 14];
   days.forEach(function(d) {
-    var startEl = document.getElementById('day' + d);
-    var idx = days.indexOf(d);
-    var endEl = idx < 3 ? document.getElementById('day' + days[idx + 1]) : null;
+    var panel = document.getElementById('day' + d);
     var sec = 'Geral';
-    var curr = startEl.nextElementSibling;
-    while (curr && curr !== endEl) {
-      if (curr.classList.contains('sec')) {
-        sec = curr.textContent.trim();
-      } else if (curr.tagName === 'DETAILS') {
-        var frameEl = curr.querySelector('.t');
-        var frame = frameEl ? frameEl.textContent.trim() : '?';
-        curr.querySelectorAll('label.si').forEach(function(si) {
+    panel.querySelectorAll('.sec, details').forEach(function(el) {
+      if (el.parentNode !== panel) return;
+      if (el.classList.contains('sec')) {
+        sec = el.textContent.trim();
+        return;
+      }
+      // DETAILS
+      var frameEl = el.querySelector('.t');
+      var frame = frameEl ? frameEl.textContent.trim() : '?';
+      el.querySelectorAll('label.si').forEach(function(si) {
           var cb = si.querySelector('input[type=checkbox]');
           if (!cb) return;
           var sn = si.querySelector('.sn');
@@ -1293,9 +1265,7 @@ function buildPVIndex() {
           if (!index[name]) { index[name] = {role: role, items: []}; order.push(name); }
           index[name].items.push({day: d, sec: sec, frame: frame, pvidx: cb.getAttribute('data-pvidx')});
         });
-      }
-      curr = curr.nextElementSibling;
-    }
+      });
   });
   order.sort();
   return {index: index, order: order};
