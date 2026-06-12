@@ -57,6 +57,25 @@ label.si:has(input:checked) .sn{text-decoration:line-through}
 label.si input{width:16px;height:16px;accent-color:#1a1a1a;flex-shrink:0;cursor:pointer}
 .sn{font-size:13px}
 .sh{font-size:11px;color:#aaa;margin-left:2px}
+/* PERSON VIEW */
+.pv-person{background:#fff;border:1px solid #ebebeb;border-radius:10px;margin:0 16px 6px;overflow:hidden}
+.pv-person[open]{border-color:#ccc}
+.pv-sum{list-style:none;display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;-webkit-user-select:none;user-select:none}
+.pv-sum::-webkit-details-marker{display:none}
+.pv-sum:hover{background:#fafafa}
+.pv-person[data-done]>.pv-sum{opacity:.45}
+.pv-person[data-done]>.pv-sum .t{text-decoration:line-through}
+.pv-body{padding:8px 14px 12px;border-top:1px solid #f0f0f0}
+.pv-note{width:100%;border:1px solid #e8e8e6;border-radius:8px;padding:8px 10px;font-size:13px;color:#555;resize:none;min-height:44px;font-family:inherit;margin-bottom:8px;background:#fafaf8}
+.pv-note:focus{outline:none;border-color:#ccc}
+.pv-day-label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#aaa;margin:10px 0 4px 2px}
+.pv-item{display:flex;align-items:center;gap:10px;padding:6px 4px;cursor:pointer;border-radius:6px}
+.pv-item:hover{background:#f8f8f6}
+.pv-item:has(input:checked){opacity:.4}
+.pv-item:has(input:checked) .pv-frame{text-decoration:line-through}
+.pv-item input{width:16px;height:16px;accent-color:#1a1a1a;flex-shrink:0;cursor:pointer}
+.pv-frame{font-size:13px;line-height:1.3}
+.pv-sec-lbl{font-size:11px;color:#aaa;margin-top:1px}
 /* LOCKED BANNER */
 .lkbanner{background:#f0f0ee;border-bottom:1px solid #e0e0de;padding:8px 16px;font-size:12px;color:#888;text-align:center;-webkit-user-select:none;user-select:none}
 /* DAYBTN LOCKED */
@@ -89,6 +108,7 @@ label.si input{width:16px;height:16px;accent-color:#1a1a1a;flex-shrink:0;cursor:
 <button class="daybtn" onclick="showDay(12)" id="btn12"><span class="dn">Sex 12/06</span>Dia 12</button>
 <button class="daybtn" onclick="showDay(13)" id="btn13"><span class="dn">Sáb 13/06</span>Dia 13</button>
 <button class="daybtn" onclick="showDay(14)" id="btn14"><span class="dn">Dom 14/06</span>Dia 14</button>
+<button class="daybtn" onclick="showPeople()" id="btnpv"><span class="dn">todos os dias</span>Pessoas</button>
 </nav>
 <div class="day-panel active" id="day11">
 <div class="dayhead"><h1>Dia 11 &middot; 11/06</h1><div class="sub">Aproximação e texturas</div></div>
@@ -987,6 +1007,8 @@ label.si input{width:16px;height:16px;accent-color:#1a1a1a;flex-shrink:0;cursor:
   <div class="h">Toda a equipe presente &middot; produzida + espont&acirc;nea &middot; vertical e horizontal</div></div>
 </label>
 </div>
+<!-- PERSON VIEW PANEL -->
+<div id="pv-panel" style="display:none;padding-top:16px;padding-bottom:24px"></div>
 <!-- FINALIZE BAR -->
 <div class="fin-bar" id="fin-bar" style="position:fixed;bottom:0;left:0;right:0;display:none">
   <button id="fin-btn">Finalizar Dia</button>
@@ -1054,7 +1076,11 @@ var currentDay = "11";
 
 // Patch showDay to track active day
 var _sd = showDay;
-showDay = function(n) { _sd(n); currentDay = String(n); updFinBar(); };
+showDay = function(n) {
+  _sd(n); currentDay = String(n); updFinBar();
+  var pvp = document.getElementById('pv-panel'); if (pvp) pvp.style.display = 'none';
+  var pvb = document.getElementById('btnpv'); if (pvb) pvb.classList.remove('active');
+};
 
 function updFinBar() {
   var bar = document.getElementById('fin-bar');
@@ -1213,6 +1239,191 @@ DAYS.forEach(function(n) {
   }
 });
 updFinBar();
+
+// ── PESSOAS VIEW ──────────────────────────────────────────────────────────
+
+// Stamp unique index on every si checkbox for cross-referencing
+(function() {
+  var i = 0;
+  document.querySelectorAll('label.si input[type=checkbox]').forEach(function(cb) {
+    cb.setAttribute('data-pvidx', i++);
+  });
+})();
+
+function showPeople() {
+  DAYS.forEach(function(d) {
+    document.getElementById('day' + d).classList.remove('active');
+    document.getElementById('btn' + d).classList.remove('active');
+  });
+  document.getElementById('btnpv').classList.add('active');
+  document.getElementById('fin-bar').style.display = 'none';
+  renderPV();
+  document.getElementById('pv-panel').style.display = 'block';
+}
+
+function buildPVIndex() {
+  var index = {}, order = [];
+  var days = [11, 12, 13, 14];
+  days.forEach(function(d) {
+    var startEl = document.getElementById('day' + d);
+    var idx = days.indexOf(d);
+    var endEl = idx < 3 ? document.getElementById('day' + days[idx + 1]) : null;
+    var sec = 'Geral';
+    var curr = startEl.nextElementSibling;
+    while (curr && curr !== endEl) {
+      if (curr.classList.contains('sec')) {
+        sec = curr.textContent.trim();
+      } else if (curr.tagName === 'DETAILS') {
+        var frameEl = curr.querySelector('.t');
+        var frame = frameEl ? frameEl.textContent.trim() : '?';
+        curr.querySelectorAll('label.si').forEach(function(si) {
+          var cb = si.querySelector('input[type=checkbox]');
+          if (!cb) return;
+          var sn = si.querySelector('.sn');
+          var name = '';
+          if (sn) {
+            sn.childNodes.forEach(function(node) {
+              if (node.nodeType === 3) name += node.textContent;
+            });
+            name = name.trim();
+          }
+          if (!name) return;
+          var sh = sn ? sn.querySelector('.sh') : null;
+          var role = sh ? sh.textContent.trim() : '';
+          if (!index[name]) { index[name] = {role: role, items: []}; order.push(name); }
+          index[name].items.push({day: d, sec: sec, frame: frame, pvidx: cb.getAttribute('data-pvidx')});
+        });
+      }
+      curr = curr.nextElementSibling;
+    }
+  });
+  order.sort();
+  return {index: index, order: order};
+}
+
+function renderPV() {
+  var result = buildPVIndex();
+  var index = result.index, names = result.order;
+  var panel = document.getElementById('pv-panel');
+  panel.innerHTML = '';
+
+  var hdr = document.createElement('div');
+  hdr.style.cssText = 'padding:0 16px 12px;font-size:12px;color:#aaa';
+  hdr.textContent = names.length + ' pessoas';
+  panel.appendChild(hdr);
+
+  names.forEach(function(name) {
+    var data = index[name];
+    var total = data.items.length;
+
+    var countDone = function() {
+      return data.items.filter(function(item) {
+        var c = document.querySelector('input[data-pvidx="' + item.pvidx + '"]');
+        return c && c.checked;
+      }).length;
+    };
+
+    var det = document.createElement('details');
+    det.className = 'pv-person';
+    if (countDone() === total && total > 0) det.setAttribute('data-done', '1');
+
+    // Summary
+    var sum = document.createElement('summary');
+    sum.className = 'pv-sum';
+    var arrSpan = document.createElement('span');
+    arrSpan.className = 'arr';
+    arrSpan.innerHTML = '&#9658;';
+    var sbDiv = document.createElement('div');
+    sbDiv.className = 'sb';
+    var tDiv = document.createElement('div');
+    tDiv.className = 't';
+    tDiv.textContent = name;
+    if (data.role) {
+      var roleSpan = document.createElement('span');
+      roleSpan.className = 'sh';
+      roleSpan.textContent = ' ' + data.role;
+      tDiv.appendChild(roleSpan);
+    }
+    sbDiv.appendChild(tDiv);
+    var badge = document.createElement('span');
+    badge.className = 'badge';
+    badge.textContent = countDone() + '/' + total;
+    sum.appendChild(arrSpan);
+    sum.appendChild(sbDiv);
+    sum.appendChild(badge);
+    det.appendChild(sum);
+
+    // Body
+    var body = document.createElement('div');
+    body.className = 'pv-body';
+
+    var noteKey = 'anhdnd_note_' + name.replace(/[^a-z0-9]/gi, '_');
+    var ta = document.createElement('textarea');
+    ta.className = 'pv-note';
+    ta.placeholder = 'Observação...';
+    ta.value = localStorage.getItem(noteKey) || '';
+    ta.rows = 2;
+    ta.addEventListener('input', function() { localStorage.setItem(noteKey, ta.value); });
+    body.appendChild(ta);
+
+    var byDay = {};
+    data.items.forEach(function(item) {
+      if (!byDay[item.day]) byDay[item.day] = [];
+      byDay[item.day].push(item);
+    });
+
+    [11, 12, 13, 14].forEach(function(d) {
+      if (!byDay[d]) return;
+      var dl = document.createElement('div');
+      dl.className = 'pv-day-label';
+      dl.textContent = 'Dia ' + d;
+      body.appendChild(dl);
+
+      byDay[d].forEach(function(item) {
+        var orig = document.querySelector('input[data-pvidx="' + item.pvidx + '"]');
+        if (!orig) return;
+
+        var lbl = document.createElement('label');
+        lbl.className = 'pv-item';
+
+        var mirrorCb = document.createElement('input');
+        mirrorCb.type = 'checkbox';
+        mirrorCb.checked = orig.checked;
+        mirrorCb.disabled = orig.disabled;
+
+        (function(orig, mirrorCb) {
+          mirrorCb.addEventListener('change', function() {
+            orig.checked = mirrorCb.checked;
+            orig.dispatchEvent(new Event('change', {bubbles: true}));
+            var d2 = countDone();
+            badge.textContent = d2 + '/' + total;
+            if (d2 === total && total > 0) det.setAttribute('data-done', '1');
+            else det.removeAttribute('data-done');
+          });
+        })(orig, mirrorCb);
+
+        var infoDiv = document.createElement('div');
+        var frameDiv = document.createElement('div');
+        frameDiv.className = 'pv-frame';
+        frameDiv.textContent = item.frame;
+        infoDiv.appendChild(frameDiv);
+        if (item.sec && item.sec !== 'Geral') {
+          var secDiv = document.createElement('div');
+          secDiv.className = 'pv-sec-lbl';
+          secDiv.textContent = item.sec;
+          infoDiv.appendChild(secDiv);
+        }
+
+        lbl.appendChild(mirrorCb);
+        lbl.appendChild(infoDiv);
+        body.appendChild(lbl);
+      });
+    });
+
+    det.appendChild(body);
+    panel.appendChild(det);
+  });
+}
 
 </script>
 </body></html>
